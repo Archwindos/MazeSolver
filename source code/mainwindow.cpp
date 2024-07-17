@@ -394,7 +394,7 @@ void MainWindow::on_comboBoxChooseAlg_currentIndexChanged(int index)
     }else if(index == 1){
         curAlg = DFS;
     }else if(index == 2){
-        curAlg = BiBFS;
+        curAlg = DBFS;
     }
     else{
         curAlg = AST;

@@ -180,8 +180,8 @@ int Maze::search()
     else if (curAlgorithm == DFS) {
         return search_DFS();
     }
-    else if (curAlgorithm == BiBFS){
-        return search_BiBFS();
+    else if (curAlgorithm == DBFS){
+        return search_DBFS();
     }
     else if (curAlgorithm == AST) {
         return search_AST();
@@ -200,8 +200,8 @@ int Maze::searchOneStep(queue<Point>& newSearchedPoint)
     else if (curAlgorithm == DFS) {
         return searchOneStep_DFS(newSearchedPoint);
     }
-    else if(curAlgorithm == BiBFS){
-        return searchOneStep_BiBFS(newSearchedPoint);
+    else if(curAlgorithm == DBFS){
+        return searchOneStep_DBFS(newSearchedPoint);
     }
     else if (curAlgorithm == AST) {
         return searchOneStep_AST(newSearchedPoint);
@@ -277,7 +277,7 @@ void Maze::searchFourCC(std::stack<Point> &stack, Point cur, std::queue<Point> &
     }
 }
 
-void Maze::searchFourCC_Bi(std::queue<Point> &queue, Point cur, std::queue<Point> &output){
+void Maze::searchFourCC_DBFS(std::queue<Point> &queue, Point cur, std::queue<Point> &output){
     Point toSearch;
     toSearch.col = cur.col - 1;
     toSearch.row = cur.row;
@@ -288,7 +288,7 @@ void Maze::searchFourCC_Bi(std::queue<Point> &queue, Point cur, std::queue<Point
     else opposite = 's';
 
     if(map[toSearch.row][toSearch.col].type == opposite){
-        BiBFSConnect(cur, toSearch);
+        DBFSConnect(cur, toSearch);
         return;
     }
     if (map[toSearch.row][toSearch.col].isSearched == false) {
@@ -300,7 +300,7 @@ void Maze::searchFourCC_Bi(std::queue<Point> &queue, Point cur, std::queue<Point
     }
     toSearch.col = cur.col + 1;
     if(map[toSearch.row][toSearch.col].type == opposite){
-        BiBFSConnect(cur, toSearch);
+        DBFSConnect(cur, toSearch);
         return;
     }
     if (map[toSearch.row][toSearch.col].isSearched == false) {
@@ -313,7 +313,7 @@ void Maze::searchFourCC_Bi(std::queue<Point> &queue, Point cur, std::queue<Point
     toSearch.col = cur.col;
     toSearch.row = cur.row - 1;
     if(map[toSearch.row][toSearch.col].type == opposite){
-        BiBFSConnect(cur, toSearch);
+        DBFSConnect(cur, toSearch);
         return;
     }
     if (map[toSearch.row][toSearch.col].isSearched == false) {
@@ -325,7 +325,7 @@ void Maze::searchFourCC_Bi(std::queue<Point> &queue, Point cur, std::queue<Point
     }
     toSearch.row = cur.row + 1;
     if(map[toSearch.row][toSearch.col].type == opposite){
-        BiBFSConnect(cur, toSearch);
+        DBFSConnect(cur, toSearch);
         return;
     }
     if (map[toSearch.row][toSearch.col].isSearched == false) {
@@ -409,7 +409,7 @@ bool Maze::searchOneStep_DFS(queue<Point>& output)
     return false;
 }
 
-void Maze::BiBFSConnect(Point tail1, Point tail2){
+void Maze::DBFSConnect(Point tail1, Point tail2){
     Lattice* positiveTail;
     Lattice* negetiveTail;
     Lattice* pre;
@@ -431,27 +431,27 @@ void Maze::BiBFSConnect(Point tail1, Point tail2){
     negetiveTail->previous = positiveTail;
 }
 
-float Maze::search_BiBFS()
+float Maze::search_DBFS()
 {
     auto start = steady_clock::now();
 
-    queue<Point> queueBiBFS;
-    queueBiBFS.push(startPoint);
+    queue<Point> queueDBFS;
+    queueDBFS.push(startPoint);
     map[startPoint.row][startPoint.col].isSearched = true;
-    queue<Point> queueBiBFSInverse;
-    queueBiBFSInverse.push(endPoint);
+    queue<Point> queueDBFSInverse;
+    queueDBFSInverse.push(endPoint);
     map[endPoint.row][endPoint.col].isSearched = true;
 
-    while (queueBiBFS.empty() == false || queueBiBFSInverse.empty() == false) {
+    while (queueDBFS.empty() == false || queueDBFSInverse.empty() == false) {
         queue<Point> output;
-        Point cur = queueBiBFS.front();
-        queueBiBFS.pop();
-        searchFourCC_Bi(queueBiBFS, cur, output);
+        Point cur = queueDBFS.front();
+        queueDBFS.pop();
+        searchFourCC_DBFS(queueDBFS, cur, output);
         if (isWayFind() == true) break;
 
-        cur = queueBiBFSInverse.front();
-        queueBiBFSInverse.pop();
-        searchFourCC_Bi(queueBiBFSInverse, cur, output);
+        cur = queueDBFSInverse.front();
+        queueDBFSInverse.pop();
+        searchFourCC_DBFS(queueDBFSInverse, cur, output);
         if (isWayFind() == true) break;
     }
 
@@ -460,28 +460,28 @@ float Maze::search_BiBFS()
     return last.count();
 }
 
-bool Maze::searchOneStep_BiBFS(queue<Point>& output){
+bool Maze::searchOneStep_DBFS(queue<Point>& output){
     //第一次把入口放进来
-    static queue<Point> queueBiBFS;
-    static queue<Point> queueBiBFSInverse;
+    static queue<Point> queueDBFS;
+    static queue<Point> queueDBFSInverse;
     if (map[startPoint.row][startPoint.col].isSearched == false) {
-        queueBiBFS = queue<Point>();
-        queueBiBFSInverse = queue<Point>();
-        queueBiBFS.push(startPoint);
+        queueDBFS = queue<Point>();
+        queueDBFSInverse = queue<Point>();
+        queueDBFS.push(startPoint);
         map[startPoint.row][startPoint.col].isSearched = true;
-        queueBiBFSInverse.push(endPoint);
+        queueDBFSInverse.push(endPoint);
         map[endPoint.row][endPoint.col].isSearched = true;
     }
-    if(queueBiBFS.empty() && queueBiBFSInverse.empty()) return true;
+    if(queueDBFS.empty() && queueDBFSInverse.empty()) return true;
 
-    Point cur = queueBiBFS.front();
-    queueBiBFS.pop();
-    searchFourCC_Bi(queueBiBFS, cur, output);
+    Point cur = queueDBFS.front();
+    queueDBFS.pop();
+    searchFourCC_DBFS(queueDBFS, cur, output);
     if (isWayFind() == true) return false;
 
-    cur = queueBiBFSInverse.front();
-    queueBiBFSInverse.pop();
-    searchFourCC_Bi(queueBiBFSInverse, cur, output);
+    cur = queueDBFSInverse.front();
+    queueDBFSInverse.pop();
+    searchFourCC_DBFS(queueDBFSInverse, cur, output);
 
     return false;
 }

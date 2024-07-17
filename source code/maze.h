@@ -16,7 +16,7 @@ enum searchAlgorithm {
     DFS,
     BFS,
     AST,
-    BiBFS,
+    DBFS,
     IDAST
 };
 
@@ -94,7 +94,7 @@ protected:
 
     void searchFourCC(stack<Point> &, Point, std::queue<Point>&);//CC, connected components
 
-    void searchFourCC_Bi(queue<Point> &, Point, std::queue<Point>&);
+    void searchFourCC_DBFS(queue<Point> &, Point, std::queue<Point>&);
 
     float search_BFS();
 
@@ -108,11 +108,11 @@ protected:
 
     bool searchOneStep_AST(queue<Point>&);
 
-    float search_BiBFS();
+    float search_DBFS();
 
-    bool searchOneStep_BiBFS(queue<Point>&);
+    bool searchOneStep_DBFS(queue<Point>&);
 
-    void BiBFSConnect(Point , Point );
+    void DBFSConnect(Point , Point );
 
     float search_IDAST();
 
