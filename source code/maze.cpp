@@ -489,7 +489,7 @@ bool Maze::searchOneStep_BiBFS(queue<Point>& output){
 
 float Maze::search_AST()
 {
-    double startTime = clock();
+    auto start = steady_clock::now();
 
     while (!openlist.empty())
     {
@@ -564,15 +564,10 @@ float Maze::search_AST()
         }
 
     }
-    stack<Point>output;
-    showWay(output);
-    while(!output.empty())
-    {
-        cout << output.top().col << ',' << output.top().row <<endl;
-        output.pop();
-    }
-    double endTime = clock();
-    return (endTime - startTime);
+
+    auto end = steady_clock::now();
+    auto last = duration_cast<microseconds>(end - start);
+    return last.count();
 }
 
 bool Maze::searchOneStep_AST(queue<Point>& newSearchedPoint)
