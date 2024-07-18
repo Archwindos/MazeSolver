@@ -281,7 +281,7 @@ void MainWindow::searchOneStep()
         return;
     }
 
-    ui->progressBar->setValue(step*100/assumedTotalStep);
+    ui->progressBar->setValue(min(step*100/assumedTotalStep, 99));
     return;
 }
 
@@ -365,10 +365,8 @@ void MainWindow::on_pushButtonLoadMap_clicked()
         QMessageBox::warning(this,tr("错误"),tr("选中的不是文件！"),QMessageBox::Ok);
         return;
     }
-
     createMaze();
 }
-
 
 void MainWindow::on_pushButtonChooseFile_clicked()
 {

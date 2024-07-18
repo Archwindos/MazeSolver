@@ -99,12 +99,7 @@ int Maze::setMap(char** inputMap)
         }
     }
 
-    initAST();
     searchTime = 0;
-    stack<Point> intstk;
-    stackDFS.swap(intstk);
-    queue<Point> intque;
-    queueBFS.swap(intque);
     isMapSet = true;
     return true;
 }
@@ -134,12 +129,7 @@ int Maze::clearSearch()
     }
     map[startPoint.row][startPoint.col].type = 's';
     map[endPoint.row][endPoint.col].type = 'e';
-    initAST();
     searchTime = 0;
-    stack<Point> intstk;
-    stackDFS.swap(intstk);
-    queue<Point> intque;
-    queueBFS.swap(intque);
 
     return true;
 }
@@ -209,6 +199,7 @@ int Maze::searchOneStep(queue<Point>& newSearchedPoint)
     return -1;
 }
 
+//BFS
 void Maze::searchFourCC(std::queue<Point> &queue, Point cur, std::queue<Point> &output){
     Point toSearch;
     toSearch.col = cur.col - 1;
@@ -243,6 +234,7 @@ void Maze::searchFourCC(std::queue<Point> &queue, Point cur, std::queue<Point> &
     }
 }
 
+//DFS
 void Maze::searchFourCC(std::stack<Point> &stack, Point cur, std::queue<Point> &output){
     Point toSearch;
     toSearch.col = cur.col - 1;
@@ -275,6 +267,54 @@ void Maze::searchFourCC(std::stack<Point> &stack, Point cur, std::queue<Point> &
         map[toSearch.row][toSearch.col].previous = &map[cur.row][cur.col];
         output.push(Point(toSearch.row-1, toSearch.col-1));
     }
+}
+
+//AST
+//排序规则
+bool GreaterSort (ASTPoint a,ASTPoint b) { return (a.f>b.f); }
+//启发函数
+int Maze::heuristic_AST(Point x, Point y){return abs(x.col-y.col)+abs(x.row-y.row);}
+
+void Maze::searchFourCC(std::vector<ASTPoint> &vectorAST, ASTPoint cur, std::queue<Point> &output)
+{
+    Point toSearch;
+    int h;
+    int g  = cur.g + 1;
+    toSearch.col = cur.col - 1;
+    toSearch.row = cur.row;
+    if (map[toSearch.row][toSearch.col].isSearched == false) {
+        h = heuristic_AST(toSearch, endPoint);
+        vectorAST.push_back(ASTPoint(toSearch, g, g+h));
+        map[toSearch.row][toSearch.col].isSearched = true;
+        map[toSearch.row][toSearch.col].previous = &map[cur.row][cur.col];
+        output.push(Point(toSearch.row-1, toSearch.col-1));
+    }
+    toSearch.col = cur.col + 1;
+    if (map[toSearch.row][toSearch.col].isSearched == false) {
+        h = heuristic_AST(toSearch, endPoint);
+        vectorAST.push_back(ASTPoint(toSearch, g, g+h));
+        map[toSearch.row][toSearch.col].isSearched = true;
+        map[toSearch.row][toSearch.col].previous = &map[cur.row][cur.col];
+        output.push(Point(toSearch.row-1, toSearch.col-1));
+    }
+    toSearch.col = cur.col;
+    toSearch.row = cur.row - 1;
+    if (map[toSearch.row][toSearch.col].isSearched == false) {
+        h = heuristic_AST(toSearch, endPoint);
+        vectorAST.push_back(ASTPoint(toSearch, g, g+h));
+        map[toSearch.row][toSearch.col].isSearched = true;
+        map[toSearch.row][toSearch.col].previous = &map[cur.row][cur.col];
+        output.push(Point(toSearch.row-1, toSearch.col-1));
+    }
+    toSearch.row = cur.row + 1;
+    if (map[toSearch.row][toSearch.col].isSearched == false) {
+        h = heuristic_AST(toSearch, endPoint);
+        vectorAST.push_back(ASTPoint(toSearch, g, g+h));
+        map[toSearch.row][toSearch.col].isSearched = true;
+        map[toSearch.row][toSearch.col].previous = &map[cur.row][cur.col];
+        output.push(Point(toSearch.row-1, toSearch.col-1));
+    }
+    sort(vectorAST.begin(), vectorAST.end(), GreaterSort);
 }
 
 void Maze::searchFourCC_DBFS(std::queue<Point> &queue, Point cur, std::queue<Point> &output){
@@ -342,6 +382,7 @@ float Maze::search_BFS()
 {
     auto start = steady_clock::now();
 
+    queue<Point> queueBFS;
     queueBFS.push(startPoint);
     map[startPoint.row][startPoint.col].isSearched = true;
     while (queueBFS.empty() == false) {
@@ -362,7 +403,9 @@ float Maze::search_BFS()
 bool Maze::searchOneStep_BFS(queue<Point>& output)
 {
     //第一次把入口放进来
+    static queue<Point> queueBFS;
     if (map[startPoint.row][startPoint.col].isSearched == false) {
+        queueBFS = queue<Point>();
         queueBFS.push(startPoint);
         map[startPoint.row][startPoint.col].isSearched = true;
     }
@@ -377,6 +420,7 @@ float Maze::search_DFS()
 {
     auto start = steady_clock::now();
 
+    stack<Point> stackDFS;
     stackDFS.push(startPoint);
     map[startPoint.row][startPoint.col].isSearched = true;
     while (stackDFS.empty() == false) {
@@ -397,7 +441,9 @@ float Maze::search_DFS()
 bool Maze::searchOneStep_DFS(queue<Point>& output)
 {
     //第一次把入口放进来
+    static stack<Point> stackDFS;
     if (map[startPoint.row][startPoint.col].isSearched == false) {
+        stackDFS = stack<Point>();
         stackDFS.push(startPoint);
         map[startPoint.row][startPoint.col].isSearched = true;
     }
@@ -486,83 +532,21 @@ bool Maze::searchOneStep_DBFS(queue<Point>& output){
     return false;
 }
 
-
 float Maze::search_AST()
 {
     auto start = steady_clock::now();
 
-    while (!openlist.empty())
-    {
-        sort(openlist.begin(), openlist.end(), NodeCompare{});
-        Node* current = *openlist.begin();
-        openlist.erase(openlist.begin());
-        closelist.push_back(current);
-        map[current->point.y][current->point.x].isSearched = true;
-        //map[current->point.x][current->point.y].type = '.';//此处直接更改了格子的类型
-        if (isWayFind() == true)
-        {
-            openlist.clear();
-            closelist.clear();
-            break;
-        }
-        int x = current->point.x;
-        int y = current->point.y;
-        vector<astPoint> neighbors =
-            { // 4个邻近节点的坐标
-                { x - 1,y },
-                { x,y - 1 }, { x,y + 1 },
-                { x + 1,y }
-            };
+    vector<ASTPoint>vectorAST;
+    vectorAST.reserve(size_length*size_height/10);
+    vectorAST.push_back(ASTPoint(startPoint.row, startPoint.col, 0));
+    map[startPoint.row][startPoint.col].isSearched = true;
 
-        for (auto n : neighbors)
-        {
-            if ((n.x >= 1 && n.x <= size_length) && (n.y >= 1 && n.y <= size_height) && map[n.y][n.x].type != '#')
-            {
-                bool incloselist = false;
-                for (auto c : closelist)
-                {
-                    if (c->point.x == n.x && c->point.y == n.y)
-                    {
-                        incloselist = true;
-                        break;
-                    }
-                }
-                if (incloselist)
-                {
-                    continue;
-                }
-
-                bool inopenlist = false;
-                for (auto o : openlist)
-                {
-                    if (o->point.x == n.x && o->point.y == n.y)
-                    {
-                        inopenlist = true;
-
-                        double g = current->g + n.distance(current->point);
-                        double h = n.distance(goal);
-                        double f = g + h;
-                        if (f < (o->f))
-                        {
-                            o->f = f;
-                            o->parent = current;
-                            map[n.y][n.x].previous = &map[current->point.y][current->point.x];
-
-                        }
-                        break;
-                    }
-                }
-                if (!inopenlist)
-                {
-                    double g = current->g + n.distance(current->point);
-                    double h = n.distance(goal);
-                    double f = g + h;
-                    openlist.push_back(new Node(n, g, h, current));
-                    map[n.y][n.x].previous = &map[current->point.y][current->point.x];
-                }
-            }
-        }
-
+    while (vectorAST.empty() == false) {
+        ASTPoint cur = vectorAST.back();//降序排列
+        vectorAST.pop_back();
+        queue<Point> output;
+        searchFourCC(vectorAST, Point(cur.row, cur.col), output);
+        if (isWayFind() == true) break;
     }
 
     auto end = steady_clock::now();
@@ -570,96 +554,18 @@ float Maze::search_AST()
     return last.count();
 }
 
-bool Maze::searchOneStep_AST(queue<Point>& newSearchedPoint)
+bool Maze::searchOneStep_AST(queue<Point>& output)
 {
-    sort(openlist.begin(), openlist.end(), NodeCompare{});
-    Node* current = *openlist.begin();
-    openlist.erase(openlist.begin());
-    closelist.push_back(current);
-    map[current->point.y][current->point.x].isSearched = true;
-    //map[current->point.x][current->point.y].type='.';//此处直接更改了格子的类型
-
-    Point a(current->point.y-1,current->point.x-1);
-
-    if(start.x!=current->point.x||start.y!=current->point.y)
-        newSearchedPoint.push(a);
-    if (isWayFind() == true)
-    {
-        openlist.clear();
-        closelist.clear();
-
-        return true;
+    static vector<ASTPoint>vectorAST;
+    if (map[startPoint.row][startPoint.col].isSearched == false) {
+        vectorAST.clear();
+        vectorAST.reserve(size_length*size_height/10);
+        vectorAST.push_back(startPoint);
+        map[startPoint.row][startPoint.col].isSearched = true;
     }
-    int x = current->point.x;
-    int y = current->point.y;
-    vector<astPoint> neighbors =
-        { // 4个邻近节点的坐标
-            { x - 1,y },
-            { x,y - 1 }, { x,y + 1 },
-            { x + 1,y }
-        };
-
-    for (auto n : neighbors)
-    {
-        if ((n.x >= 1 && n.x <= size_length) && (n.y >= 1 && n.y <= size_height) && map[n.y][n.x].type != '#')
-        {
-
-            bool incloselist = false;
-            for (auto c : closelist)
-            {
-                if (c->point.x == n.x && c->point.y == n.y)
-                {
-                    incloselist = true;
-                    break;
-                }
-            }
-            if (incloselist)
-            {
-                continue;
-            }
-
-            bool inopenlist = false;
-            for (auto o : openlist)
-            {
-                if (o->point.x == n.x && o->point.y == n.y)
-                {
-                    inopenlist = true;
-
-                    double g = current->g + n.distance(current->point);
-                    double h = n.distance(goal);
-                    double f = g + h;
-                    if (f < (o->f))
-                    {
-                        o->f = f;
-                        o->parent = current;
-                        map[n.y][n.x].previous = &map[current->point.y][current->point.x];
-                    }
-                    break;
-                }
-            }
-            if (!inopenlist)
-            {
-                double g = current->g + n.distance(current->point);
-                double h = n.distance(goal);
-                double f = g + h;
-                openlist.push_back(new Node(n, g, h, current));
-                map[n.y][n.x].previous = &map[current->point.y][current->point.x];
-            }
-        }
-    }
+    if(vectorAST.empty()) return true;
+    ASTPoint cur = vectorAST.back();//降序排列
+    vectorAST.pop_back();
+    searchFourCC(vectorAST, cur, output);
     return false;
-}
-
-void Maze::ast_pointset(Point startPoint, Point endPoint)
-{
-    start.setval(startPoint);
-    goal.setval(endPoint);
-}
-void Maze::initAST()
-{
-    openlist.clear();
-    closelist.clear();
-    ast_pointset(startPoint, endPoint);
-    openlist.push_back(new Node(start, start.distance(start), start.distance(goal)));
-
 }
