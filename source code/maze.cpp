@@ -538,14 +538,14 @@ float Maze::search_AST()
 
     vector<ASTPoint>vectorAST;
     vectorAST.reserve(size_length*size_height/10);
-    vectorAST.push_back(ASTPoint(startPoint.row, startPoint.col, 0));
+    vectorAST.push_back(startPoint);
     map[startPoint.row][startPoint.col].isSearched = true;
 
     while (vectorAST.empty() == false) {
         ASTPoint cur = vectorAST.back();//降序排列
         vectorAST.pop_back();
         queue<Point> output;
-        searchFourCC(vectorAST, Point(cur.row, cur.col), output);
+        searchFourCC(vectorAST, cur, output);
         if (isWayFind() == true) break;
     }
 
